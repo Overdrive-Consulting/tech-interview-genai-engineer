@@ -1,0 +1,178 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Technology Stack
+
+## Core Framework
+
+### Next.js 14
+- **Purpose**: Full-stack React framework for frontend and API routes
+- **Why**: Vercel deployment, TypeScript support, API routes for backend
+- **Key Features**:
+  - App Router for routing and layouts
+  - Server Components for optimal performance
+  - API Routes for backend endpoints
+  - Built-in TypeScript support
+
+## Agent Orchestration
+
+### LangGraph
+- **Package**: `@langchain/langgraph`
+- **Purpose**: Stateful agent orchestration with nodes and edges
+- **Why**: Purpose-built for multi-step agent workflows with conditional routing
+- **Key Features**:
+  - StateGraph for maintaining agent state
+  - Conditional edges for decision points
+  - Built-in support for iteration and loops
+  - Composable node architecture
+
+### LangChain
+- **Package**: `@langchain/core`, `@langchain/openai`
+- **Purpose**: LLM integration and agent utilities
+- **Why**: Industry standard for LLM applications
+- **Key Features**:
+  - OpenAI integration for GPT models
+  - Prompt templates and formatting
+  - Tool calling interfaces
+
+## MCP Integrations (via Composio)
+
+### Composio MCP
+- **Purpose**: Model Context Protocol server for tool integrations
+- **Integrations**:
+  - **Exa.ai**: Web search and content extraction
+  - **Google Docs**: Document creation and formatting
+  - **Google Drive**: Folder management and file placement
+- **Why**: Standardized way to connect LLMs to external tools
+
+### Exa.ai
+- **Purpose**: Semantic web search optimized for AI
+- **Why**: Better than traditional search for research tasks
+- **Features**:
+  - Semantic search
+  - Content extraction
+  - URL crawling
+
+## LLM Provider
+
+### OpenAI
+- **Model**: GPT-4 or GPT-3.5-turbo
+- **Purpose**: Planning, summarization, drafting
+- **Why**: Best balance of quality and speed
+- **Usage**:
+  - Planner node: analyze queries
+  - Summarize node: extract key findings
+  - Draft node: synthesize answers
+
+## Frontend
+
+### React
+- **Version**: 18+ (with Next.js 14)
+- **Purpose**: UI components
+- **Patterns**:
+  - Server Components for static content
+  - Client Components for interactivity
+  - Hooks for state management
+
+### Tailwind CSS
+- **Purpose**: Styling and responsive design
+- **Why**: Rapid development, minimal custom CSS
+- **Usage**:
+  - Utility classes for layout
+  - Responsive design out of the box
+  - Clean, minimal UI
+
+## Development Tools
+
+### TypeScript
+- **Version**: 5.0+
+- **Purpose**: Type safety and better DX
+- **Config**: Strict mode enabled
+- **Why**: Catch errors at compile time, better IDE support
+
+### Node.js
+- **Version**: 18+ (for Next.js compatibility)
+- **Purpose**: Runtime environment
+- **Package Manager**: npm or pnpm
+
+## Optional (Bonus Features)
+
+### NextAuth.js
+- **Purpose**: OAuth implementation for Google
+- **Why**: Standard solution for Next.js authentication
+- **Features**:
+  - Google OAuth provider
+  - Session management
+  - Token refresh handling
+
+## Deployment
+
+### Vercel
+- **Purpose**: Hosting and deployment
+- **Why**: Seamless Next.js integration, free tier
+- **Features**:
+  - Automatic deployments from Git
+  - Environment variable management
+  - Edge functions support
+  - Analytics and monitoring
+
+## Environment Configuration
+
+### Required Dependencies
+```json
+{
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "@langchain/langgraph": "latest",
+    "@langchain/core": "latest",
+    "@langchain/openai": "latest",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0",
+    "tailwindcss": "^3.0.0",
+    "autoprefixer": "^10.0.0",
+    "postcss": "^8.0.0"
+  }
+}
+```
+
+### MCP Client Libraries
+- Composio SDK for Node.js
+- MCP protocol implementation
+- Tool-specific adapters (Exa, Google Workspace)
+
+## API Integrations
+
+### External APIs
+1. **OpenAI API**: LLM completions
+2. **Composio MCP**: Tool orchestration layer
+3. **Exa.ai API**: Web search (via MCP)
+4. **Google Workspace APIs**: Docs & Drive (via MCP)
+
+### Rate Limits to Consider
+- OpenAI: ~3,500 requests/min (tier dependent)
+- Exa.ai: Check plan limits
+- Google APIs: 100 requests/100 seconds per user
+
+## Architecture Pattern
+
+### Layered Architecture
+1. **Presentation Layer**: Next.js UI components
+2. **API Layer**: Next.js API routes
+3. **Agent Layer**: LangGraph orchestration
+4. **Integration Layer**: MCP tool wrappers
+5. **External Services**: OpenAI, Exa, Google APIs
+
+### Data Flow
+```
+User Input → API Route → LangGraph Agent → MCP Tools → External APIs
+     ↑                                                        ↓
+     └──────────── Stream Logs ← State Updates ←─────────────┘
+```

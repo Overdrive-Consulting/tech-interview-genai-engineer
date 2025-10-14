@@ -1,0 +1,104 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Implementation Outline - LangGraph Deep Research Agent
+
+## Part 1: Setup and Scaffolding
+- Initialize Next.js project with TypeScript
+- Set up MCP configuration for Composio integrations
+- Create basic folder structure (app/, src/agent/, mcp/, server/)
+- Configure environment variables (.env from env.template)
+- Install dependencies: @langchain/langgraph, @langchain/openai, MCP clients
+
+## Part 2: MCP Integration Setup
+- Configure Composio MCP server for Exa.ai
+  - Set up search and content extraction tools
+  - Test basic search functionality
+- Configure Composio MCP server for Google Docs
+  - Set up document creation/update tools
+  - Configure formatting capabilities (headings, sections, lists)
+- Configure Composio MCP server for Google Drive
+  - Set up folder creation and file management tools
+  - Test folder placement functionality
+
+## Part 3: LangGraph Node Implementation
+- Create `types.ts` with state interface:
+  - question, sources[], notes, draft, docUrl, iteration, status
+- Implement **planner** node
+  - Analyze query and determine search strategy
+  - Decide whether to search or proceed to draft
+- Implement **exa_search** node
+  - Call Exa MCP tools (search + getContents)
+  - Extract and trim content with token limits
+  - Store results in state.sources[]
+- Implement **summarize** node
+  - Process search results
+  - Extract key passages and citations
+  - Add to state.notes
+- Implement **draft** node
+  - Synthesize findings into structured answer
+  - Include key findings and source citations
+  - Determine if needs_more or ready
+- Implement **save_to_google** node
+  - Create Google Doc via MCP (title: "Research - {slug}")
+  - Format with sections: Answer, Key Findings, Sources
+  - Move to specified Drive folder
+  - Return Doc URL
+
+## Part 4: LangGraph Orchestration
+- Define graph structure with StateGraph
+- Configure edges and conditional routing:
+  - planner → exaSearch
+  - exaSearch → summarize
+  - summarize → draft
+  - draft → exaSearch (if needs_more and under budget)
+  - draft → saveToGoogle (if ready)
+  - saveToGoogle → done
+- Implement guardrails:
+  - Max iterations (default: 2)
+  - Token budget tracking
+  - Timeout handling
+- Add error handling and retries for each node
+
+## Part 5: API Route Implementation
+- Create `/api/run-agent` endpoint
+  - Accept { query, folderName } in request body
+  - Initialize graph with user query
+  - Stream step logs back to frontend
+  - Return { status, docUrl, logs[] }
+- Implement error handling:
+  - Rate limit errors → retry with backoff
+  - Auth errors → clear error messages
+  - Timeout handling → graceful failure
+
+## Part 6: Frontend Interface
+- Create single-page UI in app/page.tsx
+- Implement components:
+  - Query input textarea
+  - Optional folder name input
+  - "Run Research" button
+  - Step logs display (real-time updates)
+  - Sources preview panel
+  - Final Doc link display
+- Add loading states and error handling
+- Style with Tailwind (clean, minimal, functional)
+
+## Part 7: Testing and Documentation
+- Test end-to-end flow with sample query
+- Document in `approach.md`:
+  - Graph design decisions
+  - Iteration budget rationale
+  - Error handling strategy
+  - Trade-offs made under time constraints
+  - Known limitations and future improvements
+- Update README with setup and deployment instructions
+
+## Stretch Goals (if time permits)
+- Implement OAuth for user's own Google Drive/Docs
+- Add session storage and logout
+- Implement idempotent writes (update same Doc on re-run)
+- Add source deduplication by domain
+- Improve UI with real-time progress indicators
+- Add telemetry/logging for debugging

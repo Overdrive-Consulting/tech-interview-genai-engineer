@@ -1,0 +1,130 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Development Rules & Best Practices
+
+## Code Style
+
+### TypeScript
+- Use TypeScript for all code (no JavaScript files)
+- Enable strict mode in tsconfig.json
+- Never use `any` type; prefer proper typing or `unknown`
+- Use interfaces for object shapes, types for unions/intersections
+- Leverage type inference where possible to avoid redundant annotations
+
+### Naming Conventions
+- Use **camelCase** for variables and functions
+- Use **PascalCase** for types, interfaces, and components
+- Use **UPPER_SNAKE_CASE** for constants and environment variables
+- Use descriptive names that explain intent (e.g., `searchResults`, `formatDocument`)
+
+### File Organization
+- Keep files small and focused (single responsibility)
+- Group related functionality in folders
+- Use index files to expose public APIs
+- Keep node implementations in separate files
+
+## LangGraph Patterns
+
+### Node Implementation
+- Each node should be a pure function that takes state and returns new state
+- Nodes should be composable and testable in isolation
+- Handle errors within nodes and return them in state
+- Log key decisions and transitions for debugging
+
+### State Management
+- Define clear state interface with TypeScript
+- Keep state immutable; always return new state objects
+- Include metadata: iteration count, timestamps, status
+- Avoid storing large payloads; use references when possible
+
+### Graph Structure
+- Keep graphs shallow (1-2 iterations) for MVP
+- Use conditional edges for decision points
+- Implement clear stopping criteria
+- Add timeouts and max iteration guards
+
+## Error Handling
+
+### API Integration Errors
+- Wrap all external API calls in try-catch
+- Implement retry logic with exponential backoff
+- Handle rate limits gracefully (wait and retry)
+- Provide clear error messages to users
+- Log errors with context for debugging
+
+### MCP Tool Errors
+- Validate MCP tool responses before using
+- Handle missing or malformed data gracefully
+- Provide fallbacks when tools fail
+- Document known failure modes
+
+### User-Facing Errors
+- Never expose internal error details to users
+- Provide actionable error messages
+- Suggest next steps when operations fail
+- Include support/documentation links
+
+## Security Best Practices
+
+### Environment Variables
+- Never commit `.env` files
+- Use `.env.template` with placeholder values
+- Validate required env vars at startup
+- Document all environment variables in README
+
+### API Keys
+- Store all keys in environment variables
+- Never log or expose keys in responses
+- Use separate keys for dev/staging/production
+- Rotate keys periodically
+
+### OAuth (Bonus Feature)
+- Use secure session storage
+- Implement CSRF protection
+- Clear tokens on logout
+- Handle token refresh properly
+
+## Testing & Validation
+
+### Before Committing
+- Test the full agent flow end-to-end
+- Verify MCP integrations work correctly
+- Check that Google Doc is created and properly formatted
+- Ensure Doc is placed in correct Drive folder
+
+### Documentation
+- Document all design decisions in `approach.md`
+- Explain trade-offs made under time constraints
+- Note known limitations and future improvements
+- Provide clear setup instructions
+
+## Performance
+
+### Token Management
+- Track token usage across iterations
+- Trim content to stay within limits
+- Prioritize quality over quantity of sources
+- Implement token budget guards
+
+### Response Time
+- Keep iteration count low (1-2 for MVP)
+- Implement timeouts for long-running operations
+- Stream updates to frontend for perceived performance
+- Cache expensive operations when possible
+
+## Deployment
+
+### Vercel Requirements
+- Keep dependencies minimal and compatible
+- Use edge-compatible APIs where possible
+- Set appropriate timeout limits for serverless functions
+- Test deployment before submitting
+
+### Documentation
+- Include deployment instructions in README
+- Document environment variable setup
+- Provide troubleshooting tips
+- Include example queries for testing

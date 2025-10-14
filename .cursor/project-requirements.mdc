@@ -1,0 +1,105 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+# LangGraph Deep Research Agent - Project Requirements
+
+## Core Requirements
+
+### LangGraph Orchestration
+
+- Build a stateful agent using LangGraph with defined nodes and edges
+- Implement the following nodes in sequence:
+  - **Planner**: Analyze query and determine research strategy
+  - **Exa Search**: Web search via Composio MCP (Exa.ai integration)
+  - **Summarize**: Extract key passages and citations from search results
+  - **Draft**: Synthesize findings into structured answer with sources
+  - **Save to Google**: Create/update Google Doc and place in Drive folder
+- Implement conditional routing:
+  - Loop back to search if draft needs more information (under iteration budget)
+  - Proceed to save when draft is ready
+- Add guardrails: max iterations, token budgets, timeouts
+
+### MCP Integrations (via Composio)
+
+- **Exa.ai MCP**:
+  - Search the web for relevant content
+  - Extract and retrieve full content from URLs
+  - Handle pagination and result limits
+  - Trim content to stay within token limits
+- **Google Docs MCP**:
+  - Create new Google Doc with structured content
+  - Format document with headings, sections, lists
+  - Include: Title, Answer (2-5 paragraphs), Key Findings (bullets), Sources (with URLs)
+- **Google Drive MCP**:
+  - Create target folder if it doesn't exist
+  - Move/place document into specified folder
+  - Handle folder permissions appropriately
+
+### State Management
+
+- Maintain agent state across nodes:
+  - User query
+  - Search results and sources[]
+  - Research notes
+  - Draft content
+  - Final Doc URL
+  - Iteration count
+  - Status indicators
+- Implement short-term scratchpad for citations and passages
+
+### API Layer
+
+- Create minimal API route `/api/run-agent`
+- Accept: `{ query: string, folderName?: string }`
+- Stream step logs to frontend for real-time updates
+- Return: `{ status, docUrl, logs[], sources[] }`
+- Handle errors gracefully with meaningful messages
+
+### Frontend Interface
+
+- Single-page Next.js UI
+- Input components:
+  - Natural language query textarea
+  - Optional folder name/ID input
+- Control elements:
+  - "Run Research" button
+  - Step logs display (show planner decisions)
+  - Sources preview panel
+- Output display:
+  - Final Google Doc link (clickable)
+  - Summary of findings
+- Loading states and error handling
+
+### Configuration & Security
+
+- Environment-based configuration via `.env`
+- Store API keys securely (OpenAI, Composio, Exa, Google)
+- No secrets in code or committed files
+- MCP config files for each integration
+- Configurable: max iterations, max sources, timeouts
+
+## Performance Expectations
+
+- Complete research loop within reasonable time (2-5 minutes)
+- Handle iteration budget efficiently (1-2 iterations for MVP)
+- Gracefully handle rate limits and timeouts
+- Provide progress updates to user during execution
+
+## Deployment Requirements
+
+- Must be deployable to Vercel
+- All dependencies specified in package.json
+- Clear setup and deployment instructions in README
+- Working demo link required for submission
+
+## Bonus Features (Preferred)
+
+- End-user OAuth for Google Drive/Docs
+- Session management for tokens
+- Logout functionality
+- Idempotent writes (update same Doc on re-run)
+- Source deduplication by domain
+- Enhanced error recovery mechanisms
