@@ -2,9 +2,15 @@
 
 ## Project Context
 
-Build a small "deep research" agent that, given a user question, (1) researches on the web via Exa.ai (through Composio MCP), (2) drafts a structured answer, and (3) writes the result into a Google Doc saved in a Google Drive folder (both via Composio MCP). Provide a 1-page frontend (Vercel preferred) to run the agent.
+Build a small "deep research" agent that, given a user question, (1) researches on the web via Exa.ai (through Composio MCP), (2) drafts a structured answer, and (3) writes the result into a Google Doc saved in a Google Drive folder (both via Composio MCP), and (4) integrates with the user's Gmail account to pre-draft an email. Allow end-user OAuth so users can connect their own Google Drive/Docs.
 
-**Bonus (preferred):** end-user OAuth so users can connect their own Google Drive/Docs.
+Our goal is to test how well you can build LangGraph agents that perform multiple tasks, and allow users to authenticate with their credentials.
+
+Deploy a 1-page frontend (Vercel preferred) deployment to query the agent through a chat.
+
+Please note the @evaluation_criteria.md. Parts of the delivery are not weighted equally. We have provided complementary .cursor files.
+
+You can use Python or JS to complete the requirements as you see fit.
 
 ## Challenge (3 hours)
 
@@ -14,38 +20,34 @@ Deliver an agent that:
 
 2. **Orchestrates a research loop with LangGraph:**
 
-   - Use Exa.ai via Composio MCP to search → fetch → extract key passages/links.
-   - Plan → read → synthesize → cite.
+3. **Creates/updates a Google Doc** and saves it to a target Drive folder via Composio MCP (you can create any folder). Ideally, allow the user to authenticate with their Googl eDrive
 
-3. **Creates/updates a Google Doc** and saves it to a target Drive folder via Composio MCP (you can create any folder).
+4. **Pre-drafts a Gmail** to alert that the document is ready.
 
-4. **Shows status + final link** to the Doc in a minimal 1-page UI.
+5. **Shows status + final link** to the Doc in 1-page.
 
 ## Technical Requirements
 
 ### Orchestration (LangGraph)
 
-- **Nodes:** planner → search (Exa MCP) → read/summarize → draft → save_to_docs (Google Docs MCP) → file_to_drive (Drive MCP) → done.
-- **Control:** loop with guardrails (max iterations, token/latency budgets).
-- **Memory:** short-term scratchpad for sources/citations.
+- **Nodes:** You can determine the nodes that are required.
+- **Control:** Add simple guardrails (eg: max iterations, token/latency budgets).
+- **Memory:** Add short-term memory, such that the agent recalls interactions within the session.
 
 ### Integrations (via Composio MCP servers)
 
 - **Exa.ai MCP:** web search + content extraction.
 - **Google Docs MCP:** create/update document with sections, headings, citations, and source list.
 - **Google Drive MCP:** ensure document is placed into specified folder (create folder if missing).
+- **Gmail MCP:** pre-draft an email to anyone.
 - Keep credentials/config in `.env` and MCP config files.
+- OAuth so users can authenticate their own Google and write to their own Drive/Docs.
 
 ### Frontend (1 page)
 
-- **Inputs:** query text, optional folder name/ID.
+- **Inputs:** query text.
 - **Controls:** Run button, show step logs (planner decisions), sources preview, link to final Doc.
 - **Deploy on Vercel** (or anywhere public). No need for design polish, just clean and usable.
-
-### Bonus (Preferred)
-
-- OAuth so users can authenticate their own Google and write to their own Drive/Docs.
-- Basic session storage of tokens; logout.
 
 ## Suggested Project Structure
 
@@ -53,24 +55,29 @@ Deliver an agent that:
 /
 ├─ app/ (or pages/)      # Next.js/Vercel UI (single page)
 ├─ src/agent/
-│  ├─ graph.ts           # LangGraph definition
 │  ├─ nodes/
-│  │  ├─ planner.ts
-│  │  ├─ exa_search.ts   # calls Exa via MCP tool
-│  │  ├─ summarize.ts
-│  │  ├─ draft.ts
-│  │  └─ save_to_google.ts # Docs + Drive via MCP tools
 │  └─ types.ts
 ├─ mcp/
 │  ├─ composio.exa.config.json
 │  ├─ composio.gdocs.config.json
 │  └─ composio.gdrive.config.json
 ├─ server/
-│  └─ api.ts             # minimal API route to invoke agent
+│  └─ api.ts             # minimal API route to invoke agent, if doing Vercel
 ├─ .env.template
 ├─ approach.md
 └─ README.md
 ```
+
+## Tools
+
+- composio.dev
+- supabase.com (if you need a database)
+- vercel.com
+- exa.ai
+- drive.google.com
+- gmail.com
+- docs.google.com
+- platform.openai.com
 
 ## Environment & Config
 
@@ -80,41 +87,7 @@ Add to `.env.template` (fill what you actually need):
 OPENAI_API_KEY=
 COMPOSIO_API_KEY=
 EXA_API_KEY=
-GOOGLE_CLIENT_ID=           # bonus OAuth only
-GOOGLE_CLIENT_SECRET=       # bonus OAuth only
 NEXT_PUBLIC_BASE_URL=       # your deployed URL
-DEFAULT_GDRIVE_FOLDER_ID=   # optional; can create if missing
-```
-
-### Minimal MCP Tool Call Shape (pseudocode)
-
-```typescript
-// exa_search.ts
-// Use Composio MCP client to call Exa tool: exa.search, exa.getContents
-// Return [{url, title, snippet, content}] trimmed with token limits
-
-// save_to_google.ts
-// Use Docs MCP: docs.create or docs.update
-// Use Drive MCP: drive.createFolderIfMissing + move file to folder
-```
-
-### LangGraph Sketch (pseudocode)
-
-```typescript
-// graph.ts
-const graph = new Graph({
-  nodes: { planner, exaSearch, summarize, draft, saveToGoogle, done },
-  edges: [
-    ['planner', 'exaSearch'],
-    ['exaSearch', 'summarize'],
-    ['summarize', 'draft'],
-    // loop back if not confident and under iteration budget
-    [['draft', 'needs_more'], 'exaSearch'],
-    [['draft', 'ready'], 'saveToGoogle'],
-    ['saveToGoogle', 'done']
-  ],
-  state: { question, sources[], notes, draft, docUrl }
-})
 ```
 
 ## Getting Started
@@ -141,9 +114,9 @@ const graph = new Graph({
 
 3. **A run that generates a Google Doc link** placed in the specified Drive folder.
 
-## Acceptance Checks (quick)
+## Sample request
 
-1. Input a query, e.g., _"What are the main drivers of Alberta's 2024–2025 SME hiring trends? Cite sources."_
+1. Sample input a query, e.g., _"Please research the main sourcing platforms for data driven VCs. Return a list of platforms and a short description about them. Cite sources. After you're done, pre-draft an email to georgiy@enteroverdrive.com to share the doc."_
 2. App shows step logs; completes within reasonable time.
 3. Returns Google Doc URL containing:
    - Title
@@ -151,6 +124,7 @@ const graph = new Graph({
    - Bullet Key Findings
    - Sources list with URLs
 4. Doc exists in target Drive folder.
+5. Email gets pre-drafted
 
 ## Rules and Guidelines
 
@@ -160,7 +134,6 @@ const graph = new Graph({
 - Focus on core functionality first
 - Document any assumptions you make
 - Time management is crucial - prioritize MVP features
-- Keep the loop shallow (1–2 iterations) to stay within time constraints
-- Do your best. If you don't finish, push the progress that you've made and explain how you would go about completing the project.
+- Do your best. If you don't finish, push the progress that you've made and explain how you would go about completing the rest of the project.
 
 Good luck with the challenge! We're excited to see your solution.
